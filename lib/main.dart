@@ -36,12 +36,16 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> {
   // ---- Default values, used by the Reset button ----------------------
   static const bool _defaultIsFollowing = false;
   static const bool _defaultIsLiked = false;
+  static const bool _defaultIsDisliked = false;
   static const int _defaultLikeCount = 128;
+  static const int _defaultDislikeCount = 3;
 
   // ---- Current state ---------------------------------------------------
   bool isFollowing = _defaultIsFollowing;
   bool isLiked = _defaultIsLiked;
+  bool isDisliked = _defaultIsDisliked;
   int likeCount = _defaultLikeCount;
+  int dislikeCount = _defaultDislikeCount;
 
   void toggleFollow() {
     setState(() {
@@ -51,9 +55,28 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> {
 
   void toggleLike() {
     setState(() {
+      // Liking cancels an existing dislike first, like on YouTube.
+      if (!isLiked && isDisliked) {
+        isDisliked = false;
+        dislikeCount--;
+      }
+
       isLiked = !isLiked;
       // Liking adds +1, unliking removes it again (-1).
       likeCount = isLiked ? likeCount + 1 : likeCount - 1;
+    });
+  }
+
+  void toggleDislike() {
+    setState(() {
+      // Disliking cancels an existing like first.
+      if (!isDisliked && isLiked) {
+        isLiked = false;
+        likeCount--;
+      }
+
+      isDisliked = !isDisliked;
+      dislikeCount = isDisliked ? dislikeCount + 1 : dislikeCount - 1;
     });
   }
 
@@ -61,7 +84,9 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> {
     setState(() {
       isFollowing = _defaultIsFollowing;
       isLiked = _defaultIsLiked;
+      isDisliked = _defaultIsDisliked;
       likeCount = _defaultLikeCount;
+      dislikeCount = _defaultDislikeCount;
     });
   }
 
@@ -118,7 +143,7 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // ---- Like button + counter ----------------------------
+                  // ---- Like / Dislike buttons + counters ----------------
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -129,8 +154,19 @@ class _ProfileCardScreenState extends State<ProfileCardScreen> {
                           color: isLiked ? Colors.red : Colors.grey,
                         ),
                       ),
+                      Text('$likeCount', style: const TextStyle(fontSize: 16)),
+                      const SizedBox(width: 20),
+                      IconButton(
+                        onPressed: toggleDislike,
+                        icon: Icon(
+                          isDisliked
+                              ? Icons.thumb_down
+                              : Icons.thumb_down_outlined,
+                          color: isDisliked ? Colors.blueGrey : Colors.grey,
+                        ),
+                      ),
                       Text(
-                        '$likeCount likes',
+                        '$dislikeCount',
                         style: const TextStyle(fontSize: 16),
                       ),
                     ],
